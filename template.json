@@ -42,56 +42,18 @@
             "CidrIp":"0.0.0.0/0"
           }
         },
-		"nodejsJobService": {
+		"myService": {
 			"Type": "AWS::ECS::Service",
 			"Properties": {
 				"Cluster": { "Ref": "myCluster" },
 				"DesiredCount": 1,
-				"TaskDefinition" : { "Ref": "nodejsJobTask" }
-			},
-			"DependsOn": [
-				"myCluster",
-				"ftpService",
-				"databaseService"
-			]
-		},
-		"nodejsService": {
-			"Type": "AWS::ECS::Service",
-			"Properties": {
-				"Cluster": { "Ref": "myCluster" },
-				"DesiredCount": 1,
-				"TaskDefinition" : { "Ref": "nodejsServiceTask" }
-			},
-			"DependsOn": [
-				"myCluster",
-				"ftpService",
-				"databaseService",
-				"nodejsJobService"
-			]
-		},
-		"ftpService": {
-			"Type": "AWS::ECS::Service",
-			"Properties": {
-				"Cluster": { "Ref": "myCluster" },
-				"DesiredCount": 1,
-				"TaskDefinition" : { "Ref": "ftpTask" }
+				"TaskDefinition" : { "Ref": "myTask" }
 			},
 			"DependsOn": [
 				"myCluster"
 			]
 		},
-		"databaseService": {
-			"Type": "AWS::ECS::Service",
-			"Properties": {
-				"Cluster": { "Ref": "myCluster" },
-				"DesiredCount": 1,
-				"TaskDefinition" : { "Ref": "databaseTask" }
-			},
-			"DependsOn": [
-				"myCluster"
-			]
-		},
-		"databaseTask": {
+		"myTask": {
 			"Type": "AWS::ECS::TaskDefinition",
 			"Properties": {
 				"ContainerDefinitions": [
@@ -110,20 +72,14 @@
 					{ "Name": "MONGODB_APP_PASS",
 					  "Value": "f864cfd548hnbfet421" }
 					],
-                    "Links" : [ "ftpApp", "nodejsServiceApp", "nodejsJobApp" ],
+                                        "Links" : [ "ftpApp", "nodejsServiceApp", "nodejsJobApp" ],
 					"Essential": "true",
 					"Image": "iownit/aws-test:data_base_service",
 					"Memory": "1",
 					"PortMappings": [{
 						"ContainerPort": 27017
 					}]
-				}]
-			}
-		},
-		"ftpTask": {
-			"Type": "AWS::ECS::TaskDefinition",
-			"Properties": {
-				"ContainerDefinitions": [
+				},
 				{
 					"Name": "ftpApp",
 					"Cpu": "10",
@@ -135,20 +91,14 @@
 					{ "Name": "CSV_FILE",
 					  "Value": "albums.csv" }
 					],
-                    "Links" : [ "databaseApp", "nodejsServiceApp", "nodejsJobApp" ],
+                                        "Links" : [ "databaseApp", "nodejsServiceApp", "nodejsJobApp" ],
 					"Essential": "true",
 					"Image": "iownit/aws-test:ftp_service",
 					"Memory": "1",
 					"PortMappings": [{
 						"ContainerPort": 21
 					}]
-				}]
-			}
-		},
-		"nodejsServiceTask": {
-			"Type": "AWS::ECS::TaskDefinition",
-			"Properties": {
-				"ContainerDefinitions": [
+				},
 				{
 					"Name": "nodejsServiceApp",
 					"Cpu": "10",
@@ -158,7 +108,7 @@
 					{ "Name": "PORT",
 					  "Value": "3000" }
 					],
-                    "Links" : [ "databaseApp", "ftpApp", "nodejsJobApp" ],
+                                        "Links" : [ "databaseApp", "ftpApp", "nodejsJobApp" ],
 					"Image": "iownit/aws-test:nodejs_service",
 					"Memory": 1,
 					"PortMappings": [{
@@ -166,13 +116,7 @@
 						"HostPort": 80,
 						"Protocol": "tcp"
 					}]
-				}]
-			}
-		},
-		"nodejsJobTask": {
-			"Type": "AWS::ECS::TaskDefinition",
-			"Properties": {
-				"ContainerDefinitions": [
+				},
 				{
 					"Name": "nodejsJobApp",
 					"Cpu": "10",
@@ -190,7 +134,7 @@
 					{ "Name": "FTP_CSV_FILE",
 					  "Value": "albums.csv" }
 					],
-                    "Links" : [ "databaseApp", "ftpApp", "nodejsServiceApp" ],
+                                        "Links" : [ "databaseApp", "ftpApp", "nodejsServiceApp" ],
 					"Essential": "true",
 					"Image": "iownit/aws-test:nodejs_job",
 					"Memory": "1"
