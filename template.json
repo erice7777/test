@@ -1,0 +1,201 @@
+{
+"AWSTemplateFormatVersion": "2010-09-09",
+"Resources": {
+        "myVPC": {
+		   "Type" : "AWS::EC2::VPC",
+		   "Properties" : {}
+		},
+		"mySubnet": {
+		  "Type": "AWS::EC2::Subnet",
+		  "Properties": {
+		    "VpcId": { "Ref": "myVPC" }
+		  }
+		},
+		"myInternetGateway": {
+		  "Type": "AWS::EC2::InternetGateway"
+		},
+        "myAttachGateway" : {
+          "Type" : "AWS::EC2::VPCGatewayAttachment",
+          "Properties" : {
+             "VpcId" : { "Ref" : "myVPC" },
+             "InternetGatewayId" : { "Ref" : "myInternetGateway" }
+          }
+        },
+		"myCluster": {
+			"Type": "AWS::ECS::Cluster"
+			"Properties": {}
+		},
+        "mySecurityGroup":{
+          "Type":"AWS::EC2::SecurityGroup",
+          "Properties":{
+            "GroupDescription":"My Security Group",
+            "VpcId": { "Ref":"myVPC" }
+          }
+        },
+        "EcsSecurityGroupHTTPinbound":{
+          "Type":"AWS::EC2::SecurityGroupIngress",
+          "Properties":{
+            "GroupId":{ "Ref":"mySecurityGroup" },
+            "IpProtocol":"tcp",
+            "FromPort":"80",
+            "ToPort":"80",
+            "CidrIp":"0.0.0.0/0"
+          }
+        },
+		"nodejsJobService": {
+			"Type": "AWS::ECS::Service",
+			"Properties": {
+				"Cluster": { "Ref": "myCluster" },
+				"DesiredCount": 1,
+				"TaskDefinition" : { "Ref": "nodejsJobTask" }
+			},
+			"DependsOn": [
+				"myCluster",
+				"ftpService",
+				"databaseService"
+			]
+		},
+		"nodejsService": {
+			"Type": "AWS::ECS::Service",
+			"Properties": {
+				"Cluster": { "Ref": "myCluster" },
+				"DesiredCount": 1,
+				"TaskDefinition" : { "Ref": "nodejsServiceTask" }
+			},
+			"DependsOn": [
+				"myCluster",
+				"ftpService",
+				"databaseService",
+				"nodejsJobService"
+			]
+		},
+		"ftpService": {
+			"Type": "AWS::ECS::Service",
+			"Properties": {
+				"Cluster": { "Ref": "myCluster" },
+				"DesiredCount": 1,
+				"TaskDefinition" : { "Ref": "ftpTask" }
+			},
+			"DependsOn": [
+				"myCluster"
+			]
+		},
+		"databaseService": {
+			"Type": "AWS::ECS::Service",
+			"Properties": {
+				"Cluster": { "Ref": "myCluster" },
+				"DesiredCount": 1,
+				"TaskDefinition" : { "Ref": "databaseTask" }
+			},
+			"DependsOn": [
+				"myCluster"
+			]
+		},
+		"databaseTask": {
+			"Type": "AWS::ECS::TaskDefinition",
+			"Properties": {
+				"ContainerDefinitions": [
+				{
+					"Name": "databaseApp",
+					"Cpu": 10,
+					"Environment": [
+					{ "Name": "MONGO_INITDB_ROOT_USERNAME",
+					  "Value": "admin" },
+					{ "Name": "MONGO_INITDB_ROOT__PASSWORD",
+					  "Value": "MONGO_INITDB_ROOT_PASSWORD" },
+					{ "Name": "MONGODB_APP_DB",
+					  "Value": "albums" },
+					{ "Name": "MONGODB_APP_USER",
+					  "Value": "ualb4513" },
+					{ "Name": "MONGODB_APP_PASS",
+					  "Value": "f864cfd548hnbfet421" }
+					],
+                    "Links" : [ "ftpApp", "nodejsServiceApp", "nodejsJobApp" ],
+					"Essential": "true",
+					"Image": "iownit/aws-test:data_base_service",
+					"Memory": "1",
+					"PortMappings": [{
+						"ContainerPort": 27017
+					}]
+				}]
+			}
+		},
+		"ftpTask": {
+			"Type": "AWS::ECS::TaskDefinition",
+			"Properties": {
+				"ContainerDefinitions": [
+				{
+					"Name": "ftpApp",
+					"Cpu": "10",
+					"Environment": [
+					{ "Name": "FTP_USER",
+					  "Value": "ualb_ftp" },
+					{ "Name": "FTP_PASS",
+					  "Value": "Hgfgfju8435Hj10" },
+					{ "Name": "CSV_FILE",
+					  "Value": "albums.csv" }
+					],
+                    "Links" : [ "databaseApp", "nodejsServiceApp", "nodejsJobApp" ],
+					"Essential": "true",
+					"Image": "iownit/aws-test:ftp_service",
+					"Memory": "1",
+					"PortMappings": [{
+						"ContainerPort": 21
+					}]
+				}]
+			}
+		},
+		"nodejsServiceTask": {
+			"Type": "AWS::ECS::TaskDefinition",
+			"Properties": {
+				"ContainerDefinitions": [
+				{
+					"Name": "nodejsServiceApp",
+					"Cpu": "10",
+					"Environment": [
+					{ "Name": "MONGO_URI",
+					  "Value": "mongodb://ualb4513:f864cfd548hnbfet421@databaseApp/albums" },
+					{ "Name": "PORT",
+					  "Value": "3000" }
+					],
+                    "Links" : [ "databaseApp", "ftpApp", "nodejsJobApp" ],
+					"Image": "iownit/aws-test:nodejs_service",
+					"Memory": 1,
+					"PortMappings": [{
+						"ContainerPort": 3000,
+						"HostPort": 80,
+						"Protocol": "tcp"
+					}]
+				}]
+			}
+		},
+		"nodejsJobTask": {
+			"Type": "AWS::ECS::TaskDefinition",
+			"Properties": {
+				"ContainerDefinitions": [
+				{
+					"Name": "nodejsJobApp",
+					"Cpu": "10",
+					"Environment": [
+					{ "Name": "MONGO_URI",
+					  "Value": "mongodb://ualb4513:f864cfd548hnbfet421@databaseApp/albums" },
+					{ "Name": "FTP_HOST",
+					  "Value": "ftpApp" },
+					{ "Name": "FTP_USER",
+					  "Value": "ualb_ftp" },
+					{ "Name": "FTP_PASSWD",
+					  "Value": "Hgfgfju8435Hj10" },
+					{ "Name": "FTP_PORT",
+					  "Value": "21" },
+					{ "Name": "FTP_CSV_FILE",
+					  "Value": "albums.csv" }
+					],
+                    "Links" : [ "databaseApp", "ftpApp", "nodejsServiceApp" ],
+					"Essential": "true",
+					"Image": "iownit/aws-test:nodejs_job",
+					"Memory": "1"
+				}]
+			}
+		}
+	}
+}
