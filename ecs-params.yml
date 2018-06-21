@@ -9,14 +9,14 @@ run_params:
   network_configuration:
     awsvpc_configuration:
       subnets:
-        - "subnet-2d117c67"
-        - "subnet-bd39e7e1"
+        - "subnet-beb3d9c7"
+        - "subnet-d8da4d93"
       security_groups:
-        - "sg-0c3f8e47"
-      assign_public_ip: ENABLED
+        - "sg-061c2d77"
+#      assign_public_ip: ENABLED
 
-#VPC created: vpc-3da04747
-#Subnet created: subnet-2d117c67
-#Subnet created: subnet-bd39e7e1
-#sg-0c3f8e47
+#VPC created: vpc-b74457ce
+#Subnet created: subnet-beb3d9c7
+#Subnet created: subnet-d8da4d93
+#"sg-061c2d77"
 

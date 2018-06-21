@@ -1,0 +1,34 @@
+[
+{
+	"ParameterKey": "AsgMaxSize",
+	"ParameterValue": "2"
+},
+{
+	"ParameterKey": "AssociatePublicIpAddress",
+	"ParameterValue": "true"
+},
+{
+	"ParameterKey": "EcsAmiId",
+	"ParameterValue": "ami-d2f489aa"
+},
+{
+	"ParameterKey": "EcsInstanceType",
+	"ParameterValue": "t2.medium"
+},
+{
+	"ParameterKey": "EcsPort",
+	"ParameterValue": "80"
+},
+{
+	"ParameterKey": "IsFargate",
+	"ParameterValue": "false"
+},
+{
+	"ParameterKey": "KeyName",
+	"ParameterValue": "mykey"
+},
+{
+	"ParameterKey": "SourceCidr",
+	"ParameterValue": "0.0.0.0/0"
+}
+]

@@ -1,27 +1,15 @@
 version: "3"
-networks:
-  albums:
-    driver: bridge
-    driver_opts:
-      com.docker.network.enable_ipv6: "true"
-      com.docker.network.bridge.enable_ip_masquerade: "false"
-    ipam:
-      driver: default
-      config:
-      - subnet: 172.16.238.0/24
-      - subnet: 2001:3984:3989::/64
 
 services:
   data_base_service:
-    image: iownit/aws-test:data_base_service
+    image: mongo
+    #image: iownit/aws-test:data_base_service
     build:
       context: ./database_service
       dockerfile: Dockerfile
-    networks:
-      albums:
-        ipv4_address: 172.16.238.12
-        ipv6_address: 2001:3984:3989::10
     environment:
+      #- ECS_ENGINE_AUTH_TYPE=docker
+      #- ECS_ENGINE_AUTH_DATA={"https://registry-1.docker.io/v2/":{"username":"readonlyioi","password":"($$7sfr<&wz'N","email":"read_only@iownit.us"}}
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=get65478hk65241
       - MONGODB_APP_DB=albums
@@ -33,76 +21,3 @@ services:
         awslogs-group: databaselogs
         awslogs-region: us-west-2
         awslogs-stream-prefix: wordpress
-
-  ftp_service:
-    image: iownit/aws-test:ftp_service
-    build:
-      context: ./ftp_service
-      dockerfile: Dockerfile
-    environment:
-      - FTP_USER=ualb_ftp
-      - FTP_PASS=Hgfgfju8435Hj10
-      - CSV_FILE=albums.csv
-    networks:
-      albums:
-        ipv4_address: 172.16.238.10
-        ipv6_address: 2001:3984:3989::10
-    logging:
-      driver: awslogs
-      options: 
-        awslogs-group: ftplogs
-        awslogs-region: us-west-2
-        awslogs-stream-prefix: wordpress
-
-
-  nodejs_job:
-    image: iownit/aws-test:nodejs_job
-    build:
-      context: ./nodejs_job
-      dockerfile: Dockerfile
-    networks:
-      albums:
-        ipv4_address: 172.16.238.11
-        ipv6_address: 2001:3984:3989::10
-    depends_on:
-      - data_base_service
-      - ftp_service
-    environment:
-      - MONGO_URI=mongodb://ualb4513:f864cfd548hnbfet421@172.16.238.12/albums
-      - FTP_HOST=172.16.238.10
-      - FTP_USER=ualb_ftp
-      - FTP_PASS=Hgfgfju8435Hj10
-      - FTP_PORT=21
-      - FTP_CSV_FILE=albums.csv
-    logging:
-      driver: awslogs
-      options: 
-        awslogs-group: nodejsjoblogs
-        awslogs-region: us-west-2
-        awslogs-stream-prefix: wordpress
-
-
-  nodejs_service:
-    image: iownit/aws-test:nodejs_service
-    build:
-      context: ./nodejs_service
-      dockerfile: Dockerfile
-    networks:
-      albums:
-        ipv4_address: 172.16.238.14
-        ipv6_address: 2001:3984:3989::10
-    depends_on:
-      - data_base_service
-      - ftp_service
-      - nodejs_job
-    environment:
-      #- NODE_ENV=production
-      - MONGO_URI=mongodb://ualb4513:f864cfd548hnbfet421@172.16.238.12/albums
-      - PORT=3000
-    logging:
-      driver: awslogs
-      options: 
-        awslogs-group: nodejsservicelogs
-        awslogs-region: us-west-2
-        awslogs-stream-prefix: wordpress
-
