@@ -1,4 +1,3 @@
-
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "AWS CloudFormation template to create resources required to run tasks on an ECS cluster.",
@@ -521,7 +520,7 @@
                 "#!/bin/bash\n",
                 "echo ECS_CLUSTER=",
                 {
-                  "Ref": "EcsCluster"
+                  "Ref": "myCluster"
                 },
                 " >> /etc/ecs/ecs.config\n",
                 "echo ECS_ENGINE_AUTH_TYPE=dockercfg >> /etc/ecs/ecs.config\n",
@@ -536,13 +535,21 @@
                         "Type": "AWS::ECS::Service",
                         "Properties": {
                                 "Cluster": {
-                                        "Ref": "EcsCluster"
+                                        "Ref": "myCluster"
                                 },
                                 "DesiredCount": 1,
+                                "LaunchType": "EC2",
                                 "TaskDefinition": {
                                         "Ref": "myTask"
                                 }
+                                 
                         }
+    },
+    "myCluster": {
+      "Type" : "AWS::ECS::Cluster",
+      "Properties" : {
+        "ClusterName" : "ECSCluster"
+      }
     },
     "myTask": {
                         "Type": "AWS::ECS::TaskDefinition",
